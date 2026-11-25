@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>새우튀김 만들기</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/script.js" defer></script>
+</head>
+<body>
+  <!-- 게임 화면 전체 -->
+  <main class="game-stage" id="gameStage">
+
+<img class="background" src="images/scene1/background.png" alt="배경">
+<img class="layer title-board" src="images/scene1/title-board.png" alt="새우튀김 만들기">
+
+<img class="layer plate" src="images/scene1/plate.png" alt="">
+
+<img class="layer shrimp" src="images/scene1/shrimp.png" alt="새우튀김">
+
+<div class="layer button-layer" id="buttonLayer">
+  <img src="images/scene1/start-button.png" alt="">
+  <button class="start-button" id="startButton" type="button" aria-label="게임 시작하기"></button>
+</div>
+
+<!-- 두 번째 장면 -->
+<div class="scene-two" id="sceneTwo">
+
+  <img src="images/scene2/background.png"
+       class="scene2-background" alt="">
+
+  <img src="images/scene2/character.png"
+       class="scene2-character" alt="">
+
+  <img src="images/scene2/speech1.png"
+       class="scene2-bubble bubble-one" alt="">
+
+  <img src="images/scene2/speech2.png"
+       class="scene2-bubble bubble-two" alt="">
+
+</div>
+<!-- ==================================================
+     세 번째 장면 : 새우튀김 만들기 안내 화면
+     ================================================== -->
+
+<div class="scene-three" id="sceneThree">
+
+  <!-- 위에서 내려오는 안내 화면 -->
+  <img
+    src="images/scene3/info.png"
+    class="scene3-info"
+    alt="새우튀김 만들기 안내"
+  >
+
+</div>
+
+
+<!-- ==================================================
+     네 번째 장면 : 수중 게임 화면
+     ================================================== -->
+
+<div class="scene-four" id="sceneFour">
+
+  <!-- 수중 배경 -->
+  <img
+    src="images/scene4/underwater.png"
+    class="scene4-background"
+    alt="수중 게임 배경"
+  >
+
+  <!--
+    앞으로 추가할 이미지나 버튼은 이 안에 넣으면 됩니다.
+
+    예시:
+    <img src="images/scene4/shrimp.png" class="scene4-shrimp" alt="">
+  -->
+
+</div>
+
+<!-- 흰색 화면 전환 -->
+<div class="white-transition" id="whiteTransition"></div>
+
+  </main>
+</body>
+</html>
