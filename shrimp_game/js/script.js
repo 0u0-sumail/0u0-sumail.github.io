@@ -530,7 +530,7 @@ element.style.top = "0px";
 function scheduleNextBubble() {
   if (!scene4State.gameStarted) return;
 
-const delay = 250 + Math.random() * 300;
+  const delay = 250 + Math.random() * 300;
 
   scene4State.bubbleSpawnTimer = setTimeout(() => {
     spawnScene4Bubble();
@@ -542,57 +542,39 @@ function spawnScene4Bubble() {
   const element = document.createElement("div");
   element.className = "scene4-bubble";
 
-  // 다이아보다 4~8배 작게
   const size = 4 + Math.random() * 8;
   const alpha = 0.5 + Math.random() * 0.3;
+  const speed = 160 + Math.random() * 110; // 초당 이동 거리(px)
+  const distance = sceneFour.clientHeight + 60;
 
   element.style.setProperty("--bubble-size", `${size}px`);
   element.style.setProperty("--bubble-alpha", alpha.toFixed(2));
+  element.style.setProperty("--bubble-distance", `${distance}px`);
+  element.style.setProperty("--bubble-duration", `${distance / speed}s`);
   element.style.left = `${8 + Math.random() * 84}%`;
-  element.style.top = `-3%`;
+  element.style.top = "-20px";
 
+  // CSS 애니메이션에 이동을 맡기고, 종료된 물방울은 정리합니다.
+  element.addEventListener("animationend", () => element.remove(), { once: true });
   scene4BubbleLayer.appendChild(element);
-
-  scene4State.bubbles.push({
-    element,
-    y: -10,
-    xPercent: 8 + Math.random() * 84,
-    speed: 2.6 + Math.random() * 2.2
-  });
 }
 /* =========================================================
    scene4 메인 루프
    ========================================================= */
 
 function startScene4Loop() {
-
   cancelAnimationFrame(scene4State.loopId);
 
   let lastTime = 0;
-  const frameInterval = 1000 / 30; // 초당 30프레임
+  const sceneHeight = sceneFour.clientHeight;
 
   function loop(currentTime) {
-
-    scene4State.loopId = requestAnimationFrame(loop);
-
-    if (lastTime === 0) {
-      lastTime = currentTime;
-      return;
-    }
-
-    const elapsed = currentTime - lastTime;
-
-    if (elapsed < frameInterval) return;
-
-    lastTime = currentTime - (elapsed % frameInterval);
-
-    // 시간에 따라 이동량 조절
-    const delta = Math.min(elapsed, 50) / 16.67;
-
-    const sceneHeight = sceneFour.clientHeight;
+    // 다이아 충돌만 JavaScript로 처리합니다. 물방울은 CSS가 이동시킵니다.
+    const delta = lastTime ? Math.min(currentTime - lastTime, 50) / 16.67 : 1;
+    lastTime = currentTime;
 
     updateScene4Foods(delta, sceneHeight);
-    updateScene4Bubbles(delta, sceneHeight);
+    scene4State.loopId = requestAnimationFrame(loop);
   }
 
   scene4State.loopId = requestAnimationFrame(loop);
@@ -650,26 +632,6 @@ function updateScene4Foods(delta, sceneHeight) {
   }
 }
 
-function updateScene4Bubbles(delta, sceneHeight) {
-
-  for (let i = scene4State.bubbles.length - 1; i >= 0; i--) {
-
-    const bubble = scene4State.bubbles[i];
-
-    // 실제 경과 시간 기준으로 물방울 이동
-    bubble.y += bubble.speed * delta;
-
-    bubble.element.style.transform =
-      `translate(-50%, ${bubble.y}px)`;
-
-    // 화면 밖으로 나간 물방울 제거
-    if (bubble.y > sceneHeight + 40) {
-
-      bubble.element.remove();
-      scene4State.bubbles.splice(i, 1);
-    }
-  }
-}
 /* =========================================================
    다이아 먹이 먹었을 때
    ========================================================= */
@@ -790,6 +752,13 @@ async function transitionToSceneFive() {
   whiteTransition.classList.add("is-white");
 
   await wait(500);
+
+  // 게임 화면 밖에서도 돌아가던 루프와 물방울 생성 중지
+  scene4State.gameStarted = false;
+  clearTimeout(scene4State.foodSpawnTimer);
+  clearTimeout(scene4State.bubbleSpawnTimer);
+  cancelAnimationFrame(scene4State.loopId);
+  scene4BubbleLayer.replaceChildren();
 
   // 다음 장면 보이기
   sceneFive.classList.add("is-active");

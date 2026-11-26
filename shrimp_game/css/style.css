@@ -714,13 +714,16 @@ body {
 .scene4-bubble {
   position: absolute;
   width: var(--bubble-size);
-  height: calc(var(--bubble-size) * 1.3);
-
+  aspect-ratio: 1 / 1.3;
   background: rgba(255,255,255,var(--bubble-alpha));
   border-radius: 50% 50% 45% 45% / 55% 55% 45% 45%;
+  pointer-events: none;
+  animation: bubble-fall var(--bubble-duration) linear forwards;
+}
 
-  transform: translate(-50%, -50%);
-  filter: blur(0.2px);
+@keyframes bubble-fall {
+  from { transform: translate(-50%, -50%) translateY(0); }
+  to { transform: translate(-50%, -50%) translateY(var(--bubble-distance)); }
 }
 
 /* -------------------------
