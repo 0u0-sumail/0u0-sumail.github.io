@@ -576,8 +576,6 @@ body {
   inset: 0;
 
   background: rgba(255, 255, 255, 0.30);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
 
   z-index: 40;
   opacity: 1;

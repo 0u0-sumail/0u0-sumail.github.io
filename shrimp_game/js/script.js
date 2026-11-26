@@ -506,7 +506,7 @@ function spawnScene4Food() {
   element.className = "scene4-food";
 
   element.style.left = `${xPercent}%`;
-  element.style.top = "-80px";
+element.style.top = "0px";
 
   scene4FoodLayer.appendChild(element);
 
@@ -530,7 +530,7 @@ function spawnScene4Food() {
 function scheduleNextBubble() {
   if (!scene4State.gameStarted) return;
 
-  const delay = 120 + Math.random() * 220;
+const delay = 250 + Math.random() * 300;
 
   scene4State.bubbleSpawnTimer = setTimeout(() => {
     spawnScene4Bubble();
@@ -568,28 +568,44 @@ function startScene4Loop() {
 
   cancelAnimationFrame(scene4State.loopId);
 
-  function loop() {
-    updateScene4Foods();
-    updateScene4Bubbles();
+  let lastTime = 0;
+  const frameInterval = 1000 / 30; // 초당 30프레임
+
+  function loop(currentTime) {
+
     scene4State.loopId = requestAnimationFrame(loop);
+
+    if (lastTime === 0) {
+      lastTime = currentTime;
+      return;
+    }
+
+    const elapsed = currentTime - lastTime;
+
+    if (elapsed < frameInterval) return;
+
+    lastTime = currentTime - (elapsed % frameInterval);
+
+    // 시간에 따라 이동량 조절
+    const delta = Math.min(elapsed, 50) / 16.67;
+
+    const sceneHeight = sceneFour.clientHeight;
+
+    updateScene4Foods(delta, sceneHeight);
+    updateScene4Bubbles(delta, sceneHeight);
   }
 
-  loop();
+  scene4State.loopId = requestAnimationFrame(loop);
 }
 /* =========================================================
    다이아 먹이 업데이트
    ========================================================= */
 
-function updateScene4Foods() {
+function updateScene4Foods(delta, sceneHeight) {
 
   if (scene4State.gameEnded) return;
 
-  const sceneHeight = sceneFour.clientHeight;
-
-  // 새우 머리 부근
   const catchY = sceneHeight * 0.30;
-
-  // 충돌 허용 범위
   const catchRange = sceneHeight * 0.025;
 
   for (let i = scene4State.foods.length - 1; i >= 0; i--) {
@@ -598,22 +614,23 @@ function updateScene4Foods() {
 
     if (!food || food.caught) continue;
 
-    // 먹이 아래로 이동
-    food.y += food.speed;
-    food.element.style.top = `${food.y}px`;
+    // 실제 경과 시간에 맞춰 이동
+    food.y += food.speed * delta;
 
-    // 같은 레일에서 새우 머리와 만났는지 확인
+    food.element.style.transform =
+      `translate(-50%, ${food.y}px)`;
+
     const sameLane =
       food.lane === scene4State.currentLane;
 
     const touchingHead =
-      Math.abs(food.y - catchY) <= catchRange;
+      food.y >= catchY - catchRange &&
+      food.y <= catchY + catchRange;
 
     if (sameLane && touchingHead) {
 
       food.caught = true;
 
-      // 반짝하며 사라지는 애니메이션
       food.element.classList.add("is-caught");
 
       setTimeout(() => {
@@ -622,32 +639,32 @@ function updateScene4Foods() {
 
       scene4State.foods.splice(i, 1);
 
-      // 먹이 하나 카운트
       handleScene4FoodCatch();
-
       continue;
     }
 
-    // 화면 아래로 나간 먹이 제거
     if (food.y > sceneHeight + 80) {
-
       food.element.remove();
       scene4State.foods.splice(i, 1);
-
     }
   }
 }
 
-function updateScene4Bubbles() {
-  const sceneHeight = sceneFour.clientHeight;
+function updateScene4Bubbles(delta, sceneHeight) {
 
   for (let i = scene4State.bubbles.length - 1; i >= 0; i--) {
+
     const bubble = scene4State.bubbles[i];
 
-    bubble.y += bubble.speed;
-    bubble.element.style.transform = `translate(-50%, ${bubble.y}px)`;
+    // 실제 경과 시간 기준으로 물방울 이동
+    bubble.y += bubble.speed * delta;
 
+    bubble.element.style.transform =
+      `translate(-50%, ${bubble.y}px)`;
+
+    // 화면 밖으로 나간 물방울 제거
     if (bubble.y > sceneHeight + 40) {
+
       bubble.element.remove();
       scene4State.bubbles.splice(i, 1);
     }
