@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>새우튀김 만들기</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/script.js" defer></script>
+</head>
+<body>
+  <!-- 게임 화면 전체 -->
+  <main class="game-stage" id="gameStage">
+
+<img class="background" src="images/scene1/background.png" alt="배경">
+<img class="layer title-board" src="images/scene1/title-board.png" alt="새우튀김 만들기">
+
+<img class="layer plate" src="images/scene1/plate.png" alt="">
+
+<img class="layer shrimp" src="images/scene1/shrimp.png" alt="새우튀김">
+
+<div class="layer button-layer" id="buttonLayer">
+  <img src="images/scene1/start-button.png" alt="">
+  <button class="start-button" id="startButton" type="button" aria-label="게임 시작하기"></button>
+</div>
+
+<!-- 두 번째 장면 -->
+<div class="scene-two" id="sceneTwo">
+
+  <img src="images/scene2/background.png"
+       class="scene2-background" alt="">
+
+  <img src="images/scene2/character.png"
+       class="scene2-character" alt="">
+
+  <img src="images/scene2/speech1.png"
+       class="scene2-bubble bubble-one" alt="">
+
+  <img src="images/scene2/speech2.png"
+       class="scene2-bubble bubble-two" alt="">
+
+</div>
+<!-- ==================================================
+     세 번째 장면 : 새우튀김 만들기 안내 화면
+     ================================================== -->
+
+<div class="scene-three" id="sceneThree">
+
+  <!-- 위에서 내려오는 안내 화면 -->
+  <img
+    src="images/scene3/info.png"
+    class="scene3-info"
+    alt="새우튀김 만들기 안내"
+  >
+
+</div>
+
+
+<!-- ==================================================
+     네 번째 장면 : 수중 게임
+     ================================================== -->
+<div class="scene-four" id="sceneFour">
+
+  <!-- 1) 배경 -->
+  <img
+    src="images/scene4/underwater.png"
+    class="scene4-background"
+    alt=""
+  >
+
+  <!-- 2) 게임 프레임 -->
+  <img
+    src="images/scene4/frame1.png"
+    class="scene4-frame"
+    alt=""
+  >
+
+  <!-- 3) 새우튀김 피스 기본 UI -->
+  <img
+    src="images/scene4/0piece.png"
+    class="scene4-piece-base"
+    id="scene4PieceBase"
+    alt=""
+  >
+
+<!-- 아래쪽 다이아 5개: 기본 흰색 -->
+<img
+  src="images/scene4/eatdia.png"
+  class="scene4-piece-empty"
+  alt=""
+>
+
+<!-- 먹은 개수만큼 노란색으로 채우는 이미지 -->
+<img
+  src="images/scene4/eatdia.png"
+  class="scene4-piece-fill"
+  id="scene4PieceFill"
+  alt=""
+>
+
+<img
+  src="images/scene4/arrows.png"
+  class="scene4-arrows"
+  alt=""
+>
+
+
+
+  <!-- 화살표 클릭 영역 -->
+  <button
+    class="scene4-arrow-btn scene4-arrow-left"
+    id="scene4ArrowLeft"
+    type="button"
+    aria-label="왼쪽으로 이동"
+  ></button>
+
+  <button
+    class="scene4-arrow-btn scene4-arrow-right"
+    id="scene4ArrowRight"
+    type="button"
+    aria-label="오른쪽으로 이동"
+  ></button>
+
+  <!-- 6) 살아있는 새우 -->
+  <img
+    src="images/scene4/liveshrimp.png"
+    class="scene4-shrimp"
+    id="scene4Shrimp"
+    alt=""
+  >
+
+  <!-- 7) 떨어지는 다이아 먹이 -->
+  <div class="scene4-food-layer" id="scene4FoodLayer"></div>
+
+  <!-- 8) 작은 물방울 -->
+  <div class="scene4-bubble-layer" id="scene4BubbleLayer"></div>
+
+  <!-- 9) 성공 연출 -->
+  <img
+    src="images/scene4/success.png"
+    class="scene4-success"
+    id="scene4Success"
+    alt=""
+  >
+
+  <!-- 10) 새우튀김 피스 보상 -->
+  <img
+    src="images/scene4/piece.png"
+    class="scene4-reward-piece"
+    id="scene4RewardPiece"
+    alt=""
+  >
+
+  <!-- 11) 시작 안내판 뒤의 하얀 뿌연 레이어 -->
+  <div
+    class="scene4-intro-backdrop"
+    id="scene4IntroBackdrop"
+  ></div>
+
+  <!-- 12) 시작 안내판 -->
+  <div class="scene4-intro" id="scene4Intro">
+    <img
+      src="images/scene4/1button.png"
+      class="scene4-intro-panel"
+      alt=""
+    >
+
+    <!-- 시작하려면 클릭하세요 영역 -->
+    <button
+      class="scene4-intro-start"
+      id="scene4IntroStart"
+      type="button"
+      aria-label="게임 시작하기"
+    ></button>
+  </div>
+
+</div>
+
+
+<!-- ==================================================
+     다섯 번째 장면 : 다음 배경
+     ================================================== -->
+<div class="scene-five" id="sceneFive">
+  <img src="images/scene5/background5.png" class="scene5-background" alt="">
+
+  <!-- 뒤쪽: 완성된 포장 이미지 (frame2 아래) -->
+  <img id="scene5Packed" class="scene5-full scene5-packed" src="images/scene5/packed.png" alt="">
+  <!-- 마우스를 따라 이동하는 장갑/용기/비닐: 프레임 바로 아래 -->
+  <img id="scene5Held" class="scene5-full scene5-held" alt="">
+  <!-- 프레임과 우측 상단 누적 보석 게이지 -->
+  <img class="scene5-full scene5-frame" src="images/scene5/frame2.png" alt="">
+  <img id="scene5Gauge" class="scene5-full scene5-gauge" src="images/scene5/1piece.png" alt="">
+
+  <!-- 클릭 가능한 원래 자리의 도구와 새우 -->
+  <img id="scene5Gloves" class="scene5-full scene5-item" src="images/scene5/gloves.png" alt="">
+  <img id="scene5Package" class="scene5-full scene5-item" src="images/scene5/package.png" alt="">
+  <img id="scene5Bag" class="scene5-full scene5-item" src="images/scene5/bag.png" alt="">
+  <img id="scene5Shrimp" class="scene5-full scene5-item" src="images/scene5/shrimp1.png" alt="">
+
+  <!-- 현재 차례의 오브젝트에만 노란 윤곽선이 천천히 점멸 -->
+  <img id="scene5Highlight" class="scene5-full scene5-highlight" alt="">
+
+  <!-- 대상 클릭 영역은 현재 단계의 오브젝트에만 활성화 -->
+  <button id="scene5Target" class="scene5-target" type="button" aria-label="다음 작업 진행"></button>
+
+  <!-- 보석 획득 연출과 성공 문구 -->
+  <img id="scene5Reward" class="scene5-full scene5-reward" src="images/scene5/piece.png" alt="">
+  <img id="scene5Success" class="scene5-full scene5-success" src="images/scene5/success.png" alt="">
+
+  <!-- 게임 설명판: 반투명 흰 배경 위에 나타남 -->
+  <div id="scene5IntroBackdrop" class="scene5-intro-backdrop"></div>
+  <img id="scene5Panel" class="scene5-full scene5-panel" src="images/scene5/panel.png" alt="Stage 2 포장 안내">
+  <button id="scene5Start" class="scene5-start" type="button" aria-label="포장 시작하기"></button>
+</div>
+
+<!-- 여섯 번째 장면: Stage 3 / 모든 PNG는 전체 캔버스 정렬 -->
+<div id="sceneSix" class="scene-six">
+  <img class="scene6-full scene6-background" src="images/scene6/background6.png" alt="">
+  <img id="scene6Board" class="scene6-full scene6-board" src="images/scene6/doma.png" alt="">
+  <img id="scene6Shrimp" class="scene6-full scene6-shrimp" src="images/scene6/shrimp2.png" alt="">
+  <img id="scene6Salt" class="scene6-full scene6-salt" src="images/scene6/salt.png" alt="">
+  <img id="scene6Fry" class="scene6-full scene6-fry" src="images/scene6/fry.png" alt="">
+  <img id="scene6Highlight" class="scene6-full scene6-highlight" alt="">
+  <img id="scene6Held" class="scene6-full scene6-held" alt="">
+  <img id="scene6Reward" class="scene6-full scene6-reward" src="images/scene6/piece.png" alt="">
+  <img class="scene6-full scene6-frame" src="images/scene6/frame6.png" alt="">
+  <img id="scene6Gauge" class="scene6-full scene6-gauge" src="images/scene6/3piece.png" alt="">
+  <button id="scene6Target" class="scene6-target" type="button" aria-label="다음 작업"></button>
+  <div id="scene6IntroBackdrop" class="scene6-intro-backdrop"></div>
+  <img id="scene6Panel" class="scene6-full scene6-panel" src="images/scene6/panel.png" alt="Stage 3 안내">
+  <button id="scene6Start" class="scene6-start" type="button" aria-label="Stage 3 시작"></button>
+</div>
+<div id="sceneSeven" class="scene-seven">
+  <img class="scene7-full scene7-background" src="images/scene7/background7.png" alt="">
+  <img id="scene7Oil" class="scene7-full scene7-oil" src="images/scene7/oil.png" alt="">
+  <div id="scene7BubbleLayer" class="scene7-bubble-layer" aria-hidden="true"></div>
+  <div id="scene7Glow" class="scene7-glow" aria-hidden="true"></div>
+  <img id="scene7Shrimp" class="scene7-full scene7-shrimp" src="images/scene7/fryshrimp.png" alt="">
+  <img id="scene7HoldShrimp" class="scene7-full scene7-holdshrimp" src="images/scene7/holdshrimp.png" alt="">
+  <img id="scene7Plate" class="scene7-full scene7-plate" src="images/scene7/plate.png" alt="">
+  <img id="scene7Hold" class="scene7-full scene7-hold" src="images/scene7/hold.png" alt="">
+  <img id="scene7Highlight" class="scene7-full scene7-highlight" alt="">
+  <img id="scene7Held" class="scene7-full scene7-held" alt="">
+  <img id="scene7Reward" class="scene7-full scene7-reward" src="images/scene7/piece.png" alt="">
+  <img id="scene7Done" class="scene7-full scene7-done" src="images/scene7/done.png" alt="">
+  <div id="scene7Confetti" class="scene7-confetti" aria-hidden="true"></div>
+  <img class="scene7-full scene7-frame" src="images/scene7/frame6.png" alt="">
+  <img id="scene7Gauge" class="scene7-full scene7-gauge" src="images/scene7/4piece.png" alt="">
+  <button id="scene7Target" class="scene7-target" type="button" aria-label="다음 작업"></button>
+</div>
+<div id="sceneEight" class="scene-eight">
+  <img class="scene8-background" src="images/scene8/background8.png" alt="">
+</div>
+
+<!-- 흰색 화면 전환 -->
+<div class="white-transition" id="whiteTransition"></div>
+
+  </main>
+</body>
+</html>
