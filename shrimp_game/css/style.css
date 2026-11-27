@@ -1,0 +1,1235 @@
+/* =========================================================
+   1. 기본 설정
+   ========================================================= */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+
+  background-color: #3F3E3D;
+}
+
+@keyframes pastel-background {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 100% 50%;
+  }
+}
+
+/* =========================================================
+   2. 게임 화면
+   ========================================================= */
+
+.game-stage {
+  position: relative;
+  flex: none;
+
+  width: min(1280px, 100vw, 177.7778vh);
+  aspect-ratio: 16 / 9;
+
+  margin: auto;
+  overflow: hidden;
+  background: #fff;
+
+  container-type: inline-size;
+}
+
+/* 첫 번째 장면 배경 */
+.background {
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: fill;
+
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* =========================================================
+   3. 투명 이미지 레이어 공통 설정
+   ========================================================= */
+.layer {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+}
+
+/* 요소가 겹치는 순서 */
+.title-board { z-index: 3; }
+.plate       { z-index: 4; }
+.shrimp      { z-index: 5; }
+.button-layer {
+  z-index: 6;
+  transform-origin: 86% 88%;
+}
+
+/* =========================================================
+   4. 새우튀김의 대기 애니메이션
+   - 3초 간격으로 아주 조금만 통통 튑니다.
+   - 퇴장 동작이 시작되면 JS가 이 애니메이션을 멈춥니다.
+   ========================================================= */
+.shrimp.is-idle {
+  animation: shrimp-idle 3s ease-in-out infinite;
+}
+
+@keyframes shrimp-idle {
+  /* 3초 주기 중 대부분은 가만히 있다가 두 번 연속 통통 튑니다. */
+  0%, 70%, 100% {
+    transform: translateY(0) rotate(0);
+  }
+
+  /* 첫 번째 점프: 기존처럼 살짝 높게 */
+  76% {
+    transform: translateY(-1.4%) rotate(-2deg);
+  }
+  81% {
+    transform: translateY(0.5%) rotate(1.2deg);
+  }
+  84% {
+    transform: translateY(0) rotate(-0.4deg);
+  }
+
+  /* 두 번째 점프: 첫 번째보다 작고 가볍게 */
+  89% {
+    transform: translateY(-0.7%) rotate(-1deg);
+  }
+  94% {
+    transform: translateY(0.2%) rotate(0.6deg);
+  }
+  97% {
+    transform: translateY(0) rotate(0);
+  }
+}
+
+/* =========================================================
+   5. 시작 버튼
+   - 버튼 이미지 전체가 클릭/눌림 동작의 대상입니다.
+   - 테두리를 별도 사각형으로 그리지 않습니다.
+   ========================================================= */
+.button-layer > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  transition: filter 140ms ease;
+}
+
+/* 이미지 위에 투명한 클릭 영역만 올립니다.
+   버튼의 테두리는 이미지에 포함된 원래 모양을 그대로 사용합니다. */
+.start-button {
+  position: absolute;
+  left: 73.7%;
+  top: 77.3%;
+  width: 24.2%;
+  height: 18.6%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  outline: none;
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+/* 마우스를 올리면 버튼 이미지에 노란색 테두리 느낌의 빛을 줍니다.
+   별도 사각형 선을 그리지 않아 모서리 모양이 깨지지 않습니다. */
+.button-layer:has(.start-button:hover) > img,
+.button-layer:has(.start-button:focus-visible) > img {
+  /* 빛 번짐 없이, 불투명한 노란색 선이 이미지 외곽을 따라 보이게 합니다. */
+  filter:
+    drop-shadow(1px 0 0 #ffdf00)
+    drop-shadow(-1px 0 0 #ffdf00)
+    drop-shadow(0 1px 0 #ffdf00)
+    drop-shadow(0 -1px 0 #ffdf00);
+}
+
+/* 클릭 시 이미지 전체가 함께 아래로 눌립니다. */
+.button-layer.is-pressed {
+  transform: translateY(0.7%) scale(0.99);
+}
+
+/* =========================================================
+   6. 시작 버튼 클릭 후 퇴장 애니메이션
+   ========================================================= */
+.title-board.is-exiting {
+  /* 제목판은 움찔하지 않고 부드럽게 위로 사라집니다. */
+  animation: title-leave 1.25s cubic-bezier(.22,.61,.36,1) forwards;
+}
+
+.plate.is-exiting {
+  animation: plate-leave 1.25s cubic-bezier(.55,.02,.85,.35) forwards;
+}
+
+.shrimp.is-exiting {
+  animation: shrimp-leave 1.2s cubic-bezier(.48,.02,.84,.34) forwards;
+}
+
+.button-layer.is-exiting {
+  animation: button-leave 1.08s cubic-bezier(.55,.02,.85,.35) forwards;
+  pointer-events: none;
+}
+
+/* 제목판: 준비 동작 없이 일정하고 부드럽게 위로 이동 */
+@keyframes title-leave {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-125%); }
+}
+
+/* 접시: 살짝 무게감 있게 위로 이동 */
+@keyframes plate-leave {
+  0%   { transform: translateY(0) rotate(0); }
+  11%  { transform: translateY(2.5%) rotate(.8deg); }
+  23%  { transform: translateY(-1%) rotate(-.5deg); }
+  100% { transform: translateY(-135%) rotate(7deg); }
+}
+
+/* 새우: 접시보다 크게 흔들리고 살짝 늦게 따라갑니다. */
+@keyframes shrimp-leave {
+  0%   { transform: translateY(0) rotate(0); }
+  9%   { transform: translateY(3.5%) rotate(-4deg); }
+  20%  { transform: translateY(-1.5%) rotate(4deg); }
+  31%  { transform: translateY(1%) rotate(-2deg); }
+  100% { transform: translateY(-145%) rotate(-14deg); }
+}
+
+/* 버튼: 위쪽으로 움찔한 뒤 아래로 퇴장 */
+@keyframes button-leave {
+  0%   { transform: translateY(0.7%) scale(.99); }
+  12%  { transform: translateY(-2.2%) scale(1.01); }
+  100% { transform: translateY(130%) rotate(5deg); }
+}
+
+/* 사용자가 기기에서 움직임 줄이기를 설정한 경우 */
+@media (prefers-reduced-motion: reduce) {
+  .shrimp.is-idle {
+    animation: none;
+  }
+
+  .title-board.is-exiting,
+  .plate.is-exiting,
+  .shrimp.is-exiting,
+  .button-layer.is-exiting {
+    animation-duration: .01ms;
+  }
+}
+
+/* =========================
+   두 번째 장면
+========================= */
+
+.scene-two {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+
+  opacity: 0;
+  visibility: hidden;
+  z-index: 10;
+}
+
+.scene-two img {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+  object-fit: fill;
+  pointer-events: none;
+}
+
+/* 배경: 아주 천천히 오른쪽으로 */
+.scene2-background {
+  opacity: 0;
+}
+
+.scene-two.is-active .scene2-background {
+  animation: background-move 7s ease-out forwards;
+}
+
+/* 인물: 아주 천천히 왼쪽으로 */
+.scene2-character {
+  opacity: 0;
+}
+
+.scene-two.is-active .scene2-character {
+  animation: character-move 7s ease-out forwards;
+}
+
+/* 배경 이동 */
+@keyframes background-move {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(1.5%);
+  }
+}
+
+/* 인물 이동 */
+@keyframes character-move {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(-1.5%);
+  }
+}
+
+/* 말풍선 기본 상태 */
+.scene2-bubble {
+  opacity: 0;
+}
+
+/* 첫 번째 말풍선 */
+.scene2-bubble.bubble-one.show {
+  animation: bubble-fade-in 0.6s ease forwards;
+}
+
+/* 두 번째 말풍선 */
+.scene2-bubble.bubble-two.show {
+  animation: bubble-fade-in 0.6s ease forwards;
+}
+
+/* 말풍선은 움직이지 않고 부드럽게 등장 */
+@keyframes bubble-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+/* =========================================================
+   8. 흰색 화면 전환
+   ========================================================= */
+
+/* 흰색 화면 기본 상태 */
+.white-transition {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  background: #ffffff;
+
+  opacity: 0;
+  visibility: hidden;
+
+  z-index: 100;
+  pointer-events: none;
+
+  /* 0.5초 동안 부드럽게 페이드 */
+  transition: opacity 0.5s ease-in-out;
+}
+
+/* 흰색 화면을 표시할 준비 */
+.white-transition.is-visible {
+  visibility: visible;
+}
+
+/* 완전히 흰색인 상태 */
+.white-transition.is-white {
+  opacity: 1;
+}
+
+/* =========================================================
+   9. 세 번째 장면 : 안내 화면
+   ========================================================= */
+
+/* 안내 화면 전체 */
+.scene-three {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  z-index: 30;
+
+  /* 처음에는 화면 밖 위쪽에 위치합니다. */
+  transform: translateY(-100%);
+
+  pointer-events: none;
+}
+
+/* 안내 이미지 */
+.scene3-info {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: fill;
+}
+
+/* -----------------------------------------
+   안내 화면이 위에서 아래로 내려오는 애니메이션
+   ----------------------------------------- */
+
+.scene-three.is-entering {
+  animation: info-slide-down 0.5s
+    cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes info-slide-down {
+
+  from {
+    transform: translateY(-100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+
+}
+
+
+/* -----------------------------------------
+   안내 화면이 아래에서 위로 올라가는 애니메이션
+   ----------------------------------------- */
+
+.scene-three.is-leaving {
+  animation: info-slide-up 0.45s
+    cubic-bezier(0.76, 0, 0.24, 1) forwards;
+}
+
+@keyframes info-slide-up {
+
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(-100%);
+  }
+
+}
+/* =========================================================
+   10. 네 번째 장면 : 수중 게임 화면
+   ========================================================= */
+
+/* 네 번째 장면 전체 */
+.scene-four {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  overflow: hidden;
+
+  /* 세 번째 장면 아래, 두 번째 장면 위 */
+  z-index: 20;
+
+  /* 처음에는 보이지 않습니다. */
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* 네 번째 장면 시작 */
+.scene-four.is-active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* 수중 배경 */
+.scene4-background {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: fill;
+
+  z-index: 1;
+}
+
+/* =========================================================
+   네 번째 장면의 추가 이미지나 버튼은
+   앞으로 이 아래에 작성하면 됩니다.
+   ========================================================= */
+
+   /* =========================================================
+   두 번째 장면 활성화
+   ========================================================= */
+
+.scene-two.is-active {
+  opacity: 1;
+  visibility: visible;
+}
+/* =========================================================
+   11. 네 번째 장면 : 수중 게임
+   ========================================================= */
+
+.scene-four {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+
+  opacity: 0;
+  visibility: hidden;
+  z-index: 20;
+}
+
+.scene-four.is-active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.scene4-background,
+.scene4-frame,
+.scene4-piece-base,
+.scene4-piece-fill,
+.scene4-arrows,
+.scene4-shrimp,
+.scene4-success,
+.scene4-reward-piece {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+}
+
+/* -------------------------
+   레이어 순서
+   ------------------------- */
+
+.scene4-background { z-index: 1; }
+
+.scene4-food-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  pointer-events: none;
+}
+
+.scene4-bubble-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+}
+
+.scene4-frame {
+  z-index: 24;
+}
+.scene4-piece-base  { z-index: 10; }
+.scene4-piece-fill  {
+  z-index: 11;
+  clip-path: inset(0 100% 0 0);
+}
+.scene4-arrows      { z-index: 12; }
+.scene4-shrimp      {
+  z-index: 13;
+  transition: transform 0.28s cubic-bezier(.22,.61,.36,1);
+}
+.scene4-success     {
+  z-index: 30;
+  opacity: 0;
+}
+.scene4-reward-piece {
+  z-index: 31;
+  opacity: 0;
+}
+
+/* -------------------------
+   시작 안내판과 배경 뿌옇게
+   ------------------------- */
+
+.scene4-intro-backdrop {
+  position: absolute;
+  inset: 0;
+
+  background: rgba(255, 255, 255, 0.30);
+
+  z-index: 40;
+  opacity: 1;
+
+  transition: opacity 0.55s ease;
+
+  /* 게임 조작을 방해하지 않도록 */
+  pointer-events: none;
+}
+
+.scene4-intro-backdrop.is-fading {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.55s ease,
+    visibility 0s linear 0.55s;
+}
+
+.scene4-intro {
+  position: absolute;
+  inset: 0;
+  z-index: 41;
+  pointer-events: none;
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.scene4-intro-panel {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+}
+
+/* 안내판 시작 버튼 클릭 영역 */
+.scene4-intro-start {
+  position: absolute;
+
+  left: 32.7%;
+  top: 67.6%;
+  width: 34.6%;
+  height: 14.2%;
+
+  padding: 0;
+  border: 0;
+  background: transparent;
+
+  cursor: pointer;
+  pointer-events: auto;
+
+  box-sizing: border-box;
+}
+
+/* 안내판 위로 슉 올라가며 사라짐 */
+.scene4-intro.is-leaving {
+  animation: scene4IntroLeave 0.55s cubic-bezier(.55,.02,.85,.35) forwards;
+}
+
+@keyframes scene4IntroLeave {
+  0%   { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-110%); opacity: 0; }
+}
+
+/* 뒤의 뿌연 흰색은 서서히 사라짐 */
+.scene4-intro-backdrop.is-fading {
+  opacity: 0;
+}
+
+/* -------------------------
+   화살표 버튼 클릭 영역
+   ------------------------- */
+
+.scene4-arrow-btn {
+  position: absolute;
+  z-index: 20;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+.scene4-arrow-left {
+  left: 25.7%;
+  top: 84.6%;
+  width: 8.7%;
+  height: 10.8%;
+}
+
+.scene4-arrow-right {
+  left: 66.0%;
+  top: 84.6%;
+  width: 8.7%;
+  height: 10.8%;
+}
+
+.scene4-arrow-btn:disabled {
+  cursor: default;
+  pointer-events: none;
+}
+
+/* -------------------------
+   다이아 먹이
+   ------------------------- */
+
+.scene4-food {
+  position: absolute;
+  width: 2.3vw;
+  aspect-ratio: 1 / 1;
+  min-width: 24px;
+  max-width: 46px;
+
+  background: #ffffff;
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  box-shadow:
+    0 0 10px rgba(255,255,255,0.55),
+    inset 0 0 4px rgba(255,255,255,0.6);
+
+  transform: translate(-50%, -50%);
+}
+
+.scene4-food.is-caught {
+  animation: scene4FoodCatch 0.28s ease-out forwards;
+}
+
+@keyframes scene4FoodCatch {
+  0%   { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  50%  { transform: translate(-50%, -50%) scale(1.45); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+}
+
+/* -------------------------
+   물방울
+   ------------------------- */
+
+.scene4-bubble {
+  position: absolute;
+  width: var(--bubble-size);
+  aspect-ratio: 1 / 1.3;
+  background: rgba(255,255,255,var(--bubble-alpha));
+  border-radius: 50% 50% 45% 45% / 55% 55% 45% 45%;
+  pointer-events: none;
+  animation: bubble-fall var(--bubble-duration) linear forwards;
+}
+
+@keyframes bubble-fall {
+  from { transform: translate(-50%, -50%) translateY(0); }
+  to { transform: translate(-50%, -50%) translateY(var(--bubble-distance)); }
+}
+
+/* -------------------------
+   성공 연출
+   ------------------------- */
+
+.scene4-success.is-show {
+  animation: scene4SuccessShow 2s ease forwards;
+}
+
+@keyframes scene4SuccessShow {
+  0%   { opacity: 0; transform: scale(0.96); }
+  20%  { opacity: 1; transform: scale(1); }
+  70%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.03); }
+}
+
+.scene4-reward-piece.is-pop {
+  animation: scene4PiecePop 0.65s cubic-bezier(.2,.9,.2,1) forwards;
+}
+
+@keyframes scene4PiecePop {
+  0%   { opacity: 0; transform: scale(0.12); }
+  55%  { opacity: 1; transform: scale(1.08); }
+  75%  { opacity: 1; transform: scale(0.96); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.scene4-reward-piece.is-to-slot {
+  animation: scene4PieceToSlot 0.75s cubic-bezier(.22,.61,.36,1) forwards;
+}
+
+@keyframes scene4PieceToSlot {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--piece-target-x), var(--piece-target-y)) scale(0.16);
+  }
+}
+
+/* =========================================================
+   12. 다섯 번째 장면
+   ========================================================= */
+
+.scene-five {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+
+  opacity: 0;
+  visibility: hidden;
+  z-index: 25;
+}
+
+.scene-five.is-active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.scene5-background {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+}
+/* =========================================
+   SCENE 4 수정
+   ========================================= */
+
+/* 시작 버튼: 노란 테두리 9px 고정 */
+.scene4-intro-start::after {
+  border: 9px solid transparent;
+  border-radius: 3% / 12%;
+  box-shadow: none;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.scene4-intro-start:hover::after,
+.scene4-intro-start:focus-visible::after {
+  border-color: #ffdf00;
+  box-shadow: none;
+}
+
+/* 새우는 화살표 아래 */
+.scene4-shrimp {
+  z-index: 14;
+}
+
+/* 화살표 이미지 */
+.scene4-arrows {
+  z-index: 18;
+}
+
+/* 화살표 클릭 영역 */
+.scene4-arrow-btn {
+  z-index: 20;
+  opacity: 1;
+}
+/* 화살표 이미지보다 위에 다이아 게이지 */
+.scene4-piece-empty {
+  z-index: 22;
+}
+
+.scene4-piece-fill {
+  z-index: 23;
+  filter:
+    brightness(0)
+    saturate(100%)
+    invert(79%)
+    sepia(80%)
+    saturate(1000%)
+    hue-rotate(350deg);
+}
+
+/* 먹이는 2배 크게 */
+.scene4-food {
+  width: 4.6%;
+  min-width: 0;
+  max-width: none;
+  aspect-ratio: 1 / 1;
+}
+.scene4-piece-empty {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+}
+.scene4-arrow-left {
+  left: 26.05%;
+  top: 84.6%;
+  width: 7.75%;
+  height: 10.7%;
+}
+
+.scene4-arrow-right {
+  left: 66.65%;
+  top: 84.6%;
+  width: 7.75%;
+  height: 10.7%;
+}
+
+/* =========================================================
+   SCENE 5: 포장 단계 (1921x1081 전체 화면 PNG 레이어)
+   ========================================================= */
+.scene-five { z-index: 25; }
+.scene5-full {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+/* 배경 < 원래 오브젝트 < 포장 새우 < 선택 강조 < 마우스 추적 이미지 < 프레임 < 게이지 */
+.scene5-background { z-index: 1; }
+.scene5-item { z-index: 2; }
+.scene5-packed { z-index: 6; opacity: 0; }
+.scene5-packed.is-visible { opacity: 1; }
+.scene5-highlight { z-index: 7; opacity: 0; }
+.scene5-held { z-index: 8; display: none; }
+.scene5-held.is-visible { display: block; }
+.scene5-frame { z-index: 9; }
+.scene5-gauge { z-index: 10; }
+.scene5-highlight.is-blinking {
+  animation: scene5Pulse 1.35s ease-in-out infinite alternate;
+}
+.scene5-highlight.is-hovered {
+  animation: none;
+  opacity: 1;
+}
+@keyframes scene5Pulse {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.scene5-target {
+  position: absolute;
+  z-index: 11;
+  display: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.scene5-target.is-active { display: block; }
+.scene5-reward { z-index: 12; opacity: 0; }
+.scene5-reward.is-pop {
+  animation: scene5PiecePop .65s cubic-bezier(.2,.9,.2,1) forwards;
+}
+@keyframes scene5PiecePop {
+  0% { opacity: 0; transform: scale(.12); }
+  55% { opacity: 1; transform: scale(1.08); }
+  75% { opacity: 1; transform: scale(.96); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.scene5-reward.is-to-slot {
+  animation: scene5PieceToSlot .75s cubic-bezier(.22,.61,.36,1) forwards;
+}
+@keyframes scene5PieceToSlot {
+  from { opacity: 1; transform: translate(0,0) scale(1); }
+  to { opacity: 0; transform: translate(var(--piece-target-x),var(--piece-target-y)) scale(.16); }
+}
+.scene5-success { z-index: 13; opacity: 0; }
+.scene5-success.is-show { animation: scene5SuccessShow 2s ease forwards; }
+@keyframes scene5SuccessShow {
+  0% { opacity: 0; transform: scale(.96); }
+  20% { opacity: 1; transform: scale(1); }
+  70% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.03); }
+}
+.scene5-intro-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  background: rgba(255,255,255,.30);
+  transition: opacity .55s ease;
+}
+.scene5-intro-backdrop.is-fading { opacity: 0; pointer-events: none; }
+.scene5-panel { z-index: 21; }
+.scene5-panel.is-leaving {
+  animation: scene5PanelLeave .55s cubic-bezier(.55,.02,.85,.35) forwards;
+}
+@keyframes scene5PanelLeave {
+  to { transform: translateY(-110%); opacity: 0; }
+}
+.scene5-start {
+  position: absolute;
+  z-index: 22;
+  left: 32.7%;
+  top: 67.5%;
+  width: 34.4%;
+  height: 15.3%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.scene5-start.is-hidden { display: none; }
+.scene-six {
+  position: absolute;
+  inset: 0;
+  z-index: 26;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+.scene-six.is-active { visibility: visible; opacity: 1; }
+.scene6-background {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+}
+
+/* =========================================================
+   SCENE 6 - 1921×1081 투명 PNG 전체 캔버스 레이어
+   ========================================================= */
+.scene-six { z-index: 26; pointer-events: auto; }
+.scene-six:not(.is-active) { pointer-events: none; }
+.scene6-full {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: fill;
+  pointer-events: none; user-select: none; -webkit-user-drag: none;
+}
+.scene6-background { z-index: 1; }
+.scene6-board { z-index: 2; }
+.scene6-shrimp, .scene6-salt, .scene6-fry { z-index: 3; }
+.scene6-highlight { z-index: 4; opacity: 0; }
+.scene6-highlight.is-blinking { animation: scene6Blink 1.25s ease-in-out infinite alternate; }
+.scene6-highlight.is-hovered { animation: none; opacity: 1; }
+@keyframes scene6Blink { from {opacity: 0;} to {opacity: 1;} }
+.scene6-held { z-index: 5; display: none; will-change: transform; }
+.scene6-held.is-visible { display: block; }
+.scene6-reward { z-index: 6; opacity: 0; }
+.scene6-reward.is-pop { animation: scene6Pop .65s cubic-bezier(.2,.9,.2,1) forwards; }
+@keyframes scene6Pop {
+  0% {opacity:0;transform:scale(.12)}
+  55% {opacity:1;transform:scale(1.08)}
+  75% {opacity:1;transform:scale(.96)}
+  100% {opacity:1;transform:scale(1)}
+}
+.scene6-reward.is-to-slot { animation: scene6ToSlot .76s cubic-bezier(.22,.61,.36,1) forwards; }
+@keyframes scene6ToSlot { from {opacity:1; transform:translate(0,0) scale(1)} to {opacity:0;transform:translate(var(--piece-target-x),var(--piece-target-y)) scale(.16)} }
+.scene6-frame { z-index: 7; }
+.scene6-gauge { z-index: 8; }
+.scene6-target {
+  position: absolute; z-index: 9; display: none;
+  border: 0; padding: 0; background: transparent;
+  cursor: pointer; touch-action: manipulation;
+}
+.scene6-target.is-active { display: block; }
+.scene6-intro-backdrop {
+  position: absolute; inset:0; z-index: 10;
+  background:rgba(255,255,255,.30);
+  transition: opacity .55s ease;
+}
+.scene6-intro-backdrop.is-fading { opacity:0; pointer-events:none; }
+.scene6-panel { z-index: 11; }
+.scene6-panel.is-leaving { animation: scene6PanelLeave .55s cubic-bezier(.55,.02,.85,.35) forwards; }
+@keyframes scene6PanelLeave { to {transform:translateY(-110%);opacity:0;} }
+.scene6-start {
+  position:absolute; z-index: 12;
+  left:32.7%; top:67.5%; width:34.4%; height:15.3%;
+  border:0; padding:0; background:transparent; cursor:pointer;
+  touch-action:manipulation;
+}
+.scene6-start.is-hidden { display:none; }
+/* 살짝 기울인 소금통의 중심은 투명 PNG 안 실제 병 위치 */
+.scene6-held.is-sprinkling {
+  transform-origin: 10.7% 69%;
+  animation: scene6Shake .19s ease-in-out 4 alternate;
+}
+@keyframes scene6Shake {
+  from { transform: translate3d(var(--salt-dx),var(--salt-dy),0) rotate(166deg); }
+  to   { transform: translate3d(var(--salt-dx),var(--salt-dy),0) rotate(186deg); }
+}
+.scene-six .scene6-shrimp.is-centering { transition: transform .58s ease; }
+.scene-seven {
+  position: absolute;
+  inset: 0;
+  z-index: 27;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+.scene-seven.is-active { visibility: visible; opacity: 1; pointer-events: auto; }
+.scene-seven:not(.is-active) { pointer-events: none; }
+.scene7-full {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.scene7-background { z-index: 1; }
+.scene7-oil { z-index: 2; }
+.scene7-bubble-layer {
+  position: absolute;
+  left: 42.4%;
+  top: 49.2%;
+  width: 16.2%;
+  height: 25.4%;
+  container-type: size;
+  z-index: 3;
+  overflow: visible;
+  pointer-events: none;
+  opacity: 0;
+}
+.scene7-glow {
+  position: absolute;
+  left: 34%;
+  top: 28%;
+  width: 32%;
+  height: 54%;
+  z-index: 4;
+  opacity: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 58%, rgba(255,248,196,.95) 0%, rgba(255,235,140,.85) 16%, rgba(255,213,92,.40) 34%, rgba(255,188,66,.16) 52%, rgba(255,188,66,0) 72%),
+    radial-gradient(circle at 50% 58%, rgba(255,255,255,.78) 0%, rgba(255,255,255,0) 28%);
+  filter: blur(6px);
+  transform: scale(.72);
+}
+.scene7-glow.is-show {
+  animation: scene7GlowBurst 1.25s cubic-bezier(.2,.9,.2,1) forwards;
+}
+.scene7-bubble-layer.is-active { opacity: 1; }
+.scene7-bubble {
+  position: absolute;
+  aspect-ratio: 1 / 1;
+  border: max(1px, 0.12cqw) solid rgba(255,255,255,.88);
+  border-radius: 50%;
+  background: rgba(255,255,255,.08);
+  box-sizing: border-box;
+  animation: scene7BubbleRise var(--bubble-duration, 2.1s) linear forwards;
+  transform: translate3d(0,0,0) scale(.6);
+}
+@keyframes scene7BubbleRise {
+  0% { transform: translate3d(0,0,0) scale(.4); opacity: 0; }
+  10% { opacity: .92; }
+  100% { transform: translate3d(var(--bubble-drift, 0cqw), calc(-1 * var(--bubble-rise, 65cqh)), 0) scale(1.12); opacity: 0; }
+}
+@keyframes scene7GlowBurst {
+  0% { opacity: 0; transform: scale(.58); }
+  22% { opacity: .95; transform: scale(.88); }
+  55% { opacity: .82; transform: scale(1.05); }
+  100% { opacity: 0; transform: scale(1.18); }
+}
+.scene7-shrimp { z-index: 6; }
+.scene7-holdshrimp { z-index: 7; opacity: 0; }
+.scene7-plate {
+  z-index: 5;
+  opacity: 0;
+  transform: translate3d(-100%,0,0);
+}
+.scene7-plate.is-visible {
+  animation: scene7PlateSlide 1.05s cubic-bezier(.22,.61,.36,1) both;
+}
+@keyframes scene7PlateSlide {
+  from { opacity: 1; transform: translate3d(-100%,0,0); }
+  to { opacity: 1; transform: translate3d(0,0,0); }
+}
+.scene7-hold { z-index: 7; }
+.scene7-highlight { z-index: 4; opacity: 0; }
+.scene7-highlight.is-blinking { animation: scene7Blink 1.2s ease-in-out infinite alternate; }
+.scene7-highlight.is-hovered { animation: none; opacity: 1; }
+@keyframes scene7Blink { from { opacity: 0; } to { opacity: 1; } }
+.scene7-held { z-index: 8; display: none; will-change: transform; }
+.scene7-held.is-visible { display: block; }
+.scene7-reward { z-index: 9; opacity: 0; }
+.scene7-reward.is-pop { animation: scene7RewardPop .65s cubic-bezier(.2,.9,.2,1) forwards; }
+@keyframes scene7RewardPop {
+  0% { opacity: 0; transform: scale(.12); }
+  55% { opacity: 1; transform: scale(1.08); }
+  75% { opacity: 1; transform: scale(.96); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.scene7-reward.is-to-slot { animation: scene7RewardToSlot .76s cubic-bezier(.22,.61,.36,1) forwards; }
+@keyframes scene7RewardToSlot {
+  from { opacity: 1; transform: translate(0,0) scale(1); }
+  to { opacity: 0; transform: translate(var(--piece-target-x), var(--piece-target-y)) scale(.16); }
+}
+.scene7-done {
+  z-index: 10;
+  opacity: 0;
+  transform: scale(.7) translateY(-20px);
+}
+.scene7-done.is-show { animation: scene7DonePop .7s cubic-bezier(.2,.9,.2,1) forwards; }
+@keyframes scene7DonePop {
+  0% { opacity: 0; transform: scale(.6) translateY(-26px); }
+  62% { opacity: 1; transform: scale(1.08) translateY(0); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.scene7-confetti {
+  position: absolute;
+  inset: 0;
+  z-index: 11;
+  pointer-events: none;
+  overflow: hidden;
+}
+.scene7-confetti-piece {
+  position: absolute;
+  top: -8%;
+  width: var(--w, 10px);
+  height: var(--h, 18px);
+  background: var(--c, #ffd54f);
+  border-radius: 2px;
+  opacity: .96;
+  animation: scene7ConfettiFall var(--dur, 2.3s) linear forwards;
+}
+@keyframes scene7ConfettiFall {
+  0% { transform: translate3d(0,0,0) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  100% { transform: translate3d(var(--dx, 0px), 118vh, 0) rotate(var(--rot, 540deg)); opacity: 0; }
+}
+.scene7-frame { z-index: 12; }
+.scene7-gauge { z-index: 13; }
+.scene7-target {
+  position: absolute;
+  z-index: 14;
+  display: none;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.scene7-target.is-active { display: block; }
+.scene-eight {
+  position: absolute;
+  inset: 0;
+  z-index: 28;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+.scene-eight.is-active { visibility: visible; opacity: 1; }
+.scene8-background {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+}
+
+/* Game sound toggle: above UI, unobtrusive and remains accessible. */
+#soundToggle {
+  position:absolute; right:1.0%; bottom:1.2%; z-index:120;
+  border:1px solid rgba(255,255,255,.75); border-radius:22px;
+  background:rgba(48,45,49,.56);color:white;
+  padding:6px 12px;font:600 clamp(10px,1.3cqw,15px)/1.35 system-ui,sans-serif;
+  cursor:pointer; backdrop-filter:blur(5px); -webkit-backdrop-filter:blur(5px);
+}
+#soundToggle:hover, #soundToggle:focus-visible {background:rgba(48,45,49,.78);outline:2px solid #ffd75b;}
